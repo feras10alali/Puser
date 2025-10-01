@@ -1,38 +1,23 @@
-<!-- +page.svelte -->
 <script>
-  import { pb } from '$lib/pocketbase';
+  import { enhance } from '$app/forms';
   import { fade, fly } from 'svelte/transition';
+  
+  export let form;
   
   let amount = '';
   let date = '';
   let category = '';
-  let isSubmitting = false;
   let showSuccess = false;
 
-  async function handleSubmit() {
-    isSubmitting = true;
+  $: if (form?.success) {
+    showSuccess = true;
+    amount = '';
+    date = '';
+    category = '';
     
-    try {
-      await pb.collection('submits').create({
-        amount: amount,
-        date: date,
-        category: category
-      });
-      
-      showSuccess = true;
-      amount = '';
-      date = '';
-      category = '';
-      
-      setTimeout(() => {
-        showSuccess = false;
-      }, 3000);
-    } catch (error) {
-      console.error('Error submitting:', error);
-      alert('An error occurred while submitting');
-    } finally {
-      isSubmitting = false;
-    }
+    setTimeout(() => {
+      showSuccess = false;
+    }, 3000);
   }
 </script>
 
@@ -65,7 +50,16 @@
       </h1>
     </div>
 
-    <form on:submit|preventDefault={handleSubmit} class="space-y-6">
+    {#if form?.error}
+      <div 
+        class="mb-6 p-4 bg-red-50 border-2 border-red-200 rounded-2xl text-center text-red-700 font-medium"
+        in:fly={{ y: 10, duration: 300 }}
+      >
+        {form.error}
+      </div>
+    {/if}
+
+    <form method="POST" action="?/submit" use:enhance class="space-y-6">
       
       <div class="group" in:fly={{ x: -20, duration: 500, delay: 400 }}>
         <label for="amount" class="block text-left text-gray-700 font-medium mb-2 transition-colors group-focus-within:text-black">
@@ -75,9 +69,10 @@
           <input
             id="amount"
             type="number"
+            name="amount"
             bind:value={amount}
             required
-            class="w-full px-4 py-4  bg-white border-2 border-gray-200 rounded-2xl text-left focus:border-black focus:outline-none transition-all duration-300 hover:border-gray-300"
+            class="w-full px-4 py-4 bg-white border-2 border-gray-200 rounded-2xl text-left focus:border-black focus:outline-none transition-all duration-300 hover:border-gray-300"
             placeholder="Enter amount"
           />
           <div class="absolute right-4 top-1/2 -translate-y-1/2 w-6 h-6 opacity-60">
@@ -96,6 +91,7 @@
         <input
           id="date"
           type="date"
+          name="date"
           bind:value={date}
           required
           class="w-full px-4 py-4 bg-white border-2 border-gray-200 rounded-2xl text-left focus:border-black focus:outline-none transition-all duration-300 hover:border-gray-300"
@@ -109,6 +105,7 @@
         <input
           id="category"
           type="text"
+          name="category"
           bind:value={category}
           required
           class="w-full px-4 py-4 bg-white border-2 border-gray-200 rounded-2xl text-left focus:border-black focus:outline-none transition-all duration-300 hover:border-gray-300"
@@ -118,11 +115,10 @@
 
       <button
         type="submit"
-        disabled={isSubmitting}
-        class="w-full bg-black text-white py-4 rounded-2xl font-semibold transition-all duration-300 hover:bg-gray-800 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+        class="w-full bg-black text-white py-4 rounded-2xl font-semibold transition-all duration-300 hover:bg-gray-800 hover:scale-105 active:scale-95"
         in:fly={{ y: 20, duration: 500, delay: 700 }}
       >
-        {isSubmitting ? 'Submitting...' : 'Submit'}
+        Submit
       </button>
     </form>
 

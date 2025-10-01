@@ -3,19 +3,38 @@ import PocketBase from 'pocketbase';
 
 export async function handle({ event, resolve }) {
   // Initialize PocketBase instance
-  event.locals.pb = new PocketBase('https://nuts-plant.pockethost.io/'); // Replace with your PocketBase URL
+  event.locals.pb = new PocketBase('https://nuts-plant.pockethost.io/');
   
   // Load auth store from cookie
   event.locals.pb.authStore.loadFromCookie(event.request.headers.get('cookie') || '');
 
   try {
     // Refresh authentication if valid
-    if (event.locals.pb.authStore.isValid) {
-      await event.locals.pb.collection('Puser').authRefresh();
+    if (event.locals.pb.authStore.isValid && event.locals.pb.authStore.model) {
+      // Get the user's collection name
+      const collectionName = event.locals.pb.authStore.model.collectionName;
+      
+      if (collectionName === 'Puser' || collectionName === 'Fuser') {
+        // Only refresh if the token is about to expire (within 5 minutes)
+        const token = event.locals.pb.authStore.token;
+        if (token) {
+          // Decode JWT to check expiration
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          const expiresIn = payload.exp * 1000 - Date.now();
+          
+          // Refresh only if less than 5 minutes remaining
+          if (expiresIn < 5 * 60 * 1000) {
+            await event.locals.pb.collection(collectionName).authRefresh();
+          }
+        }
+      }
     }
-  } catch (_) {
-    // Clear auth store if refresh fails
-    event.locals.pb.authStore.clear();
+  } catch (error) {
+    // Only clear on specific auth errors, not network errors
+    if (error.status === 401 || error.status === 403) {
+      event.locals.pb.authStore.clear();
+    }
+    console.error('Auth refresh error:', error);
   }
 
   const response = await resolve(event);
@@ -24,25 +43,13 @@ export async function handle({ event, resolve }) {
   response.headers.append(
     'set-cookie',
     event.locals.pb.authStore.exportToCookie({ 
-      secure: true, // Set to true in production with HTTPS
+      secure: process.env.NODE_ENV === 'production',
       httpOnly: true,
       sameSite: 'lax',
-      path: '/'
+      path: '/',
+      maxAge: 7 * 24 * 60 * 60 // 7 days
     })
   );
 
   return response;
-}
-
-// Optional: Add user to locals for easy access
-export function handleFetch({ request, fetch }) {
-  // Clone the request
-  const url = new URL(request.url);
-  
-  // If it's an API request to PocketBase, handle it
-  if (url.origin === 'https://nuts-plant.pockethost.io/') { // Replace with your PocketBase URL
-    return fetch(request);
-  }
-
-  return fetch(request);
 }

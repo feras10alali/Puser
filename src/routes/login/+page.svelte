@@ -30,7 +30,7 @@
     
     <div class="text-center mb-12">
       <h1 class="text-5xl font-bold text-black mb-2" in:fly={{ y: -30, duration: 800, delay: 200 }}>
-        مرحبا <span class="inline-block animate-wave">👋</span>
+        Welcome <span class="inline-block animate-wave">👋</span>
       </h1>
     </div>
 
@@ -46,30 +46,28 @@
     <form method="POST" use:enhance class="space-y-6">
       
       <div class="group" in:fly={{ x: -20, duration: 500, delay: 400 }}>
-        <label for="email" class="block text-right text-gray-700 font-medium mb-2 transition-colors group-focus-within:text-black">
-          البريد الإلكتروني
-        </label>
+        <label for="email" class="block text-left text-gray-700 font-medium mb-2 transition-colors group-focus-within:text-black">
+          Email        </label>
         <input
           id="email"
           type="email"
           name="email"
           value={form?.email ?? ''}
           required
-          class="w-full px-4 py-4 bg-white border-2 border-gray-200 rounded-2xl text-right focus:border-black focus:outline-none transition-all duration-300 hover:border-gray-300"
+          class="w-full px-4 py-4 bg-white border-2 border-gray-200 rounded-2xl text-left focus:border-black focus:outline-none transition-all duration-300 hover:border-gray-300"
           placeholder="example@email.com"
         />
       </div>
 
       <div class="group" in:fly={{ x: -20, duration: 500, delay: 500 }}>
-        <label for="password" class="block text-right text-gray-700 font-medium mb-2 transition-colors group-focus-within:text-black">
-          كلمة المرور
-        </label>
+        <label for="password" class="block text-left text-gray-700 font-medium mb-2 transition-colors group-focus-within:text-black">
+          Password        </label>
         <input
           id="password"
           type="password"
           name="password"
           required
-          class="w-full px-4 py-4 bg-white border-2 border-gray-200 rounded-2xl text-right focus:border-black focus:outline-none transition-all duration-300 hover:border-gray-300"
+          class="w-full px-4 py-4 bg-white border-2 border-gray-200 rounded-2xl text-left focus:border-black focus:outline-none transition-all duration-300 hover:border-gray-300"
           placeholder="••••••••"
         />
       </div>
@@ -79,7 +77,7 @@
         class="w-full bg-black text-white py-4 rounded-2xl font-semibold transition-all duration-300 hover:bg-gray-800 hover:scale-105 active:scale-95"
         in:fly={{ y: 20, duration: 500, delay: 600 }}
       >
-        تسجيل الدخول
+        login
       </button>
     </form>
 

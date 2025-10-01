@@ -1,3 +1,4 @@
+//login/+page.server.js
 import { redirect, fail } from '@sveltejs/kit';
 
 export async function load({ locals }) {
