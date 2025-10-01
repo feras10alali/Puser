@@ -1,6 +1,6 @@
-
 <script>
   import { enhance } from '$app/forms';
+  import { goto } from '$app/navigation';
   
   export let data;
   
@@ -8,6 +8,9 @@
   let sortBy = 'date';
   let sortOrder = 'desc';
   let showDropdown = false;
+  let showDatePicker = false;
+  let startDate = data.startDate || '';
+  let endDate = data.endDate || '';
 
   function sortRecords(column) {
     if (sortBy === column) {
@@ -53,9 +56,33 @@
   function closeDropdown() {
     showDropdown = false;
   }
+
+  function toggleDatePicker(event) {
+    event.stopPropagation();
+    showDatePicker = !showDatePicker;
+  }
+
+  function closeDatePicker() {
+    showDatePicker = false;
+  }
+
+  function applyDateFilter() {
+    const params = new URLSearchParams();
+    if (startDate) params.set('startDate', startDate);
+    if (endDate) params.set('endDate', endDate);
+    goto(`?${params.toString()}`);
+    showDatePicker = false;
+  }
+
+  function clearDateFilter() {
+    startDate = '';
+    endDate = '';
+    goto('?');
+    showDatePicker = false;
+  }
 </script>
 
-<svelte:window on:click={closeDropdown} />
+<svelte:window on:click={closeDatePicker} />
 
 <div class="min-h-screen bg-gray-50" dir="rtl">
   <!-- Header -->
@@ -100,6 +127,71 @@
   <!-- Table Content -->
   <div class="p-4 md:p-8">
     <div class="max-w-6xl mx-auto">
+      <!-- Date Filter Section -->
+      <div class="mb-4 flex justify-end">
+        <div class="relative">
+          <button
+            on:click={toggleDatePicker}
+            class="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow hover:shadow-md transition-shadow border border-gray-300"
+          >
+            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <span class="text-gray-700">تصفية حسب التاريخ</span>
+            {#if startDate || endDate}
+              <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
+            {/if}
+          </button>
+
+          {#if showDatePicker}
+            <div 
+              class="absolute left-0 mt-2 bg-white rounded-lg shadow-lg border border-gray-200 p-4 z-50 min-w-[300px]"
+              on:click|stopPropagation
+            >
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2 text-right">
+                    من تاريخ
+                  </label>
+                  <input
+                    type="date"
+                    bind:value={startDate}
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2 text-right">
+                    إلى تاريخ
+                  </label>
+                  <input
+                    type="date"
+                    bind:value={endDate}
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div class="flex gap-2 pt-2">
+                  <button
+                    on:click={applyDateFilter}
+                    class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                  >
+                    تطبيق
+                  </button>
+                  <button
+                    on:click={clearDateFilter}
+                    class="flex-1 bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                  >
+                    إعادة تعيين
+                  </button>
+                </div>
+              </div>
+            </div>
+          {/if}
+        </div>
+      </div>
+
+      <!-- Table -->
       <div class="bg-white rounded-lg shadow-md overflow-hidden">
         <div class="overflow-x-auto">
           <table class="w-full">
