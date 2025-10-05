@@ -29,9 +29,11 @@
   <div class="w-full max-w-md" in:fly={{ y: 20, duration: 600, delay: 100 }}>
     
     <div class="text-center mb-12">
-      <h1 class="text-5xl font-bold text-black mb-2" in:fly={{ y: -30, duration: 800, delay: 200 }}>
+      <h1 class="ml-8 text-5xl font-bold text-black mb-2" in:fly={{ y: -30, duration: 800, delay: 200 }}>
         Welcome <span class="inline-block animate-wave">👋</span>
+        
       </h1>
+      <br> <span class="ml-0 text-5xl font-bold text-black ">admin</span>
     </div>
 
     {#if form?.error}

@@ -3,7 +3,7 @@ import PocketBase from 'pocketbase';
 
 export async function handle({ event, resolve }) {
   // Initialize PocketBase instance
-  event.locals.pb = new PocketBase('https://nuts-plant.pockethost.io/');
+  event.locals.pb = new PocketBase('http://10.10.7.10:8090/');
   
   // Load auth store from cookie
   event.locals.pb.authStore.loadFromCookie(event.request.headers.get('cookie') || '');

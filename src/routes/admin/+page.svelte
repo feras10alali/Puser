@@ -35,6 +35,9 @@
       } else if (column === 'date') {
         aVal = new Date(aVal);
         bVal = new Date(bVal);
+      } else if (column === 'employeeName') {
+        aVal = (aVal || '').toLowerCase();
+        bVal = (bVal || '').toLowerCase();
       }
 
       if (sortOrder === 'asc') {
@@ -47,11 +50,10 @@
 
   function formatDate(dateString) {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit'
-    });
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
   }
 
   function toggleDropdown() {
@@ -127,8 +129,8 @@
 <div class="min-h-screen bg-gray-50" dir="ltr">
   <!-- Header -->
   <header class="bg-white shadow-sm border-b border-gray-200 print:hidden">
-    <div class="max-w-6xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
-      <h1 class="text-2xl font-bold text-gray-800">Dashboard</h1>
+    <div class="max-w-7xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
+      <h1 class="text-2xl font-bold text-gray-800">Admin Dashboard</h1>
       
       <!-- User Avatar Dropdown -->
       <div class="relative">
@@ -137,12 +139,12 @@
           class="flex items-center gap-3 hover:bg-gray-50 rounded-lg p-2 transition-colors"
         >
           <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
-            {data.user?.email?.charAt(0).toUpperCase() || 'U'}
+            {data.user?.email?.charAt(0).toUpperCase() || 'A'}
           </div>
         </button>
 
         {#if showDropdown}
-          <div class="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+          <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
             <div class="px-4 py-2 border-b border-gray-200">
               <p class="text-sm text-gray-600 truncate">{data.user?.email || ''}</p>
             </div>
@@ -151,7 +153,7 @@
               href="/add-user"
               class="w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 transition-colors flex items-center justify-start gap-2 block"
             >
-              <span>Add User</span>
+              <span>Manage Users</span>
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
               </svg>
@@ -176,14 +178,14 @@
 
   <!-- Table Content -->
   <div class="p-4 md:p-8">
-    <div class="max-w-6xl mx-auto">
+    <div class="max-w-7xl mx-auto">
       <!-- Date Filter Section -->
       <div class="mb-4 flex justify-between items-center print:hidden">
         <!-- Print Button -->
         <button
           type="button"
           on:click={printTable}
-          class="flex items-center gap-2 bg-black hover:bg-gray-800 text-white px-6 py-3 rounded-lg shadow transition-colors font-medium print:hidden"
+          class="flex items-center gap-2 bg-black hover:bg-gray-800 text-white px-6 py-3 rounded-lg shadow transition-colors font-medium"
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -209,7 +211,7 @@
 
           {#if showDatePicker}
             <div 
-              class="absolute left-0 mt-2 bg-white rounded-lg shadow-lg border border-gray-200 p-4 z-50 min-w-[300px]"
+              class="absolute right-0 mt-2 bg-white rounded-lg shadow-lg border border-gray-200 p-4 z-50 min-w-[300px]"
             >
               <div class="space-y-4">
                 <div>
@@ -263,6 +265,17 @@
             <thead class="bg-gray-100">
               <tr>
                 <th 
+                  on:click={() => sortRecords('employeeName')}
+                  class="px-6 py-4 text-left font-semibold text-gray-700 border-b-2 border-black cursor-pointer hover:bg-gray-200 transition-colors select-none"
+                >
+                  <div class="flex items-center justify-start gap-2">
+                    Employee
+                    {#if sortBy === 'employeeName'}
+                      <span class="text-sm">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                    {/if}
+                  </div>
+                </th>
+                <th 
                   on:click={() => sortRecords('amount')}
                   class="px-6 py-4 text-left font-semibold text-gray-700 border-b-2 border-black cursor-pointer hover:bg-gray-200 transition-colors select-none"
                 >
@@ -292,6 +305,19 @@
             <tbody>
               {#each records as record}
                 <tr class="hover:bg-gray-50 transition-colors">
+                  <td class="px-6 py-4 border-b border-gray-200">
+                    <div class="flex items-center gap-3">
+                      <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm">
+                        {record.employeeName?.charAt(0).toUpperCase() || '?'}
+                      </div>
+                      <div>
+                        <div class="font-medium text-gray-900">{record.employeeName}</div>
+                        {#if record.employeeEmail}
+                          <div class="text-xs text-gray-500">{record.employeeEmail}</div>
+                        {/if}
+                      </div>
+                    </div>
+                  </td>
                   <td class="px-6 py-4 text-gray-800 border-b border-gray-200">
                     {record.amount}
                   </td>
@@ -304,7 +330,7 @@
                 </tr>
               {:else}
                 <tr>
-                  <td colspan="3" class="px-6 py-8 text-center text-gray-500">
+                  <td colspan="4" class="px-6 py-8 text-center text-gray-500">
                     No Data Available
                   </td>
                 </tr>
@@ -313,10 +339,10 @@
             <!-- Table Footer with Total -->
             <tfoot class="bg-gray-50 border-t-2 border-gray-300">
               <tr>
-
-                <td class="px-6 py-4 text-left font-semibold text-gray-700" colspan="2">
-                  Total: <span class="px-6 py-4 text-left font-semibold text-blue-500">{totalAmount.toLocaleString('en-US')}</span>
+                <td class="px-6 py-4 text-left font-semibold text-gray-700" colspan="3">
+                  Total: <span class="text-blue-600">{totalAmount.toLocaleString('en-US')}</span>
                 </td>
+                <td class="px-6 py-4"></td>
               </tr>
             </tfoot>
           </table>

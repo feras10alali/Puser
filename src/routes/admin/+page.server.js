@@ -1,4 +1,4 @@
-//admin/+page.server.js
+// admin/+page.server.js
 import { redirect } from '@sveltejs/kit';
 
 export async function load({ locals, url }) {
@@ -6,17 +6,17 @@ export async function load({ locals, url }) {
   if (!locals.pb.authStore.isValid) {
     throw redirect(303, '/login');
   }
-
+  
   // Check if user is in Puser collection
   const user = locals.pb.authStore.model;
   if (!user || user.collectionName !== 'Puser') {
     throw redirect(303, '/unauthorized');
   }
-
+  
   // Get date range from URL params
   const startDate = url.searchParams.get('startDate');
   const endDate = url.searchParams.get('endDate');
-
+  
   try {
     // Build date filter
     let dateFilter = '';
@@ -38,15 +38,26 @@ export async function load({ locals, url }) {
       end.setHours(23, 59, 59, 999);
       dateFilter = `date <= "${end.toISOString()}"`;
     }
-
-    // Fetch records from submits collection with filter
+    
+    // Fetch records from submits collection with filter and expand the added_by relation
     const records = await locals.pb.collection('submits').getList(1, 50, {
       sort: '-date',
-      filter: dateFilter
+      filter: dateFilter,
+      expand: 'added_by'  // This expands the relation to get user details
     });
-
+    
+    // Map records to include employee name
+    const recordsWithUser = records.items.map(record => ({
+      id: record.id,
+      amount: record.amount,
+      date: record.date,
+      category: record.category,
+      employeeName: record.expand?.added_by?.name || record.expand?.added_by?.email || 'Unknown',
+      employeeEmail: record.expand?.added_by?.email || ''
+    }));
+    
     return {
-      records: records.items,
+      records: recordsWithUser,
       user: user,
       startDate: startDate,
       endDate: endDate

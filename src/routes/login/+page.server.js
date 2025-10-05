@@ -18,17 +18,18 @@ export const actions = {
 
     if (!email || !password) {
       return fail(400, { 
-        error: 'يرجى إدخال البريد الإلكتروني وكلمة المرور',
+        error: 'Please enter email and password',
         email 
       });
     }
 
     try {
-      await locals.pb.collection('Puser').authWithPassword(email, password);
+      // Convert email to lowercase before authentication
+      await locals.pb.collection('Puser').authWithPassword(email.toLowerCase(), password);
     } catch (error) {
       console.error('Login error:', error);
       return fail(400, { 
-        error: 'البريد الإلكتروني أو كلمة المرور غير صحيحة',
+        error: 'Invalid email or password',
         email 
       });
     }
